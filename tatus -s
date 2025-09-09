@@ -1,0 +1,13 @@
+[1mdiff --git a/app/projets-contrats/page.tsx b/app/projets-contrats/page.tsx[m
+[1mindex a974502..0cdfad0 100644[m
+[1m--- a/app/projets-contrats/page.tsx[m
+[1m+++ b/app/projets-contrats/page.tsx[m
+[36m@@ -12,7 +12,7 @@[m [mimport { Eye, FileText, DollarSign, Plus, Trash2, Filter, XCircle, Upload } from[m
+ import { Header } from "@/components/header"[m
+ import { Sidebar } from "@/components/sidebar"[m
+ import { useRouter } from "next/navigation"[m
+[31m-import Image from "next/image"pprimera[m
+[32m+[m[32mimport Image from "next/image"[m
+ interface ProjetContrat {[m
+   id: string[m
+   typeProjetContrat: "Projet de recherche financé" | "Contrat de recherche"[m
