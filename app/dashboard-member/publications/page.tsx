@@ -70,16 +70,14 @@ export default function PublicationsPage() {
     journal: false,
     issn: false,
     base: false,
-    annee: false,
-    tranche: false
+    annee: false
   })
   const [indexeeValues, setIndexeeValues] = useState({
     titre: '',
     journal: '',
     issn: '',
     base: '',
-    annee: '',
-    tranche: ''
+    annee: ''
   })
   const [ouvrageErrors, setOuvrageErrors] = useState({
     intitule: false,
@@ -96,6 +94,85 @@ export default function PublicationsPage() {
     justificatif: null as File | null
   })
   const [ouvrageLienJustificatifError, setOuvrageLienJustificatifError] = useState("")
+  const [brevetErrors, setBrevetErrors] = useState({
+    intitule: false,
+    type: false,
+    champApplication: false,
+    numeroDepot: false,
+    dateDepot: false
+  })
+  const [brevetValues, setBrevetValues] = useState({
+    intitule: '',
+    type: '',
+    champApplication: '',
+    numeroDepot: '',
+    dateDepot: '',
+    numeroEnregistrement: '',
+    partenaires: ''
+  })
+  const [brevetFormData, setBrevetFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [brevetLienJustificatifError, setBrevetLienJustificatifError] = useState("")
+  const [revueErrors, setRevueErrors] = useState({
+    intitule: false,
+    type: false,
+    champApplication: false,
+    numeroDepot: false,
+    dateDepot: false
+  })
+  const [revueValues, setRevueValues] = useState({
+    intitule: '',
+    type: '',
+    champApplication: '',
+    numeroDepot: '',
+    dateDepot: '',
+    numeroEnregistrement: '',
+    partenaires: ''
+  })
+  const [revueFormData, setRevueFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [revueLienJustificatifError, setRevueLienJustificatifError] = useState("")
+  const [distinctionErrors, setDistinctionErrors] = useState({
+    intitule: false,
+    date: false
+  })
+  const [distinctionValues, setDistinctionValues] = useState({
+    intitule: '',
+    evenement: '',
+    organisme: '',
+    date: ''
+  })
+  const [distinctionFormData, setDistinctionFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [distinctionLienJustificatifError, setDistinctionLienJustificatifError] = useState("")
+  const [chapitreErrors, setChapitreErrors] = useState({
+    intituleChapitre: false,
+    intituleOuvrage: false,
+    maisonEdition: false,
+    annee: false
+  })
+  const [chapitreValues, setChapitreValues] = useState({
+    intituleChapitre: '',
+    numeroChapitre: '',
+    pageDe: '',
+    pageA: '',
+    intituleOuvrage: '',
+    maisonEdition: '',
+    annee: '',
+    issn: '',
+    isbn: ''
+  })
+  const [chapitreFormData, setChapitreFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [chapitreLienJustificatifError, setChapitreLienJustificatifError] = useState("")
   const [formData, setFormData] = useState({
     title: "",
     authors: "",
@@ -581,6 +658,7 @@ export default function PublicationsPage() {
                       <SelectContent>
                         <SelectItem value="all">Toutes les catégories</SelectItem>
                         <SelectItem value="Brevets et droits">Brevets et droits</SelectItem>
+                        <SelectItem value="Chapitre">Chapitre</SelectItem>
                         {[...new Set(publications.map((p) => p.category))].map((cat) => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
@@ -874,7 +952,69 @@ export default function PublicationsPage() {
                   </div>
                 </div>
 
-                {/* Informations techniques - Grille organisée */}
+                {/* Informations spécifiques selon le type de publication */}
+                {selectedPublication.category === "Publications" && selectedPublication.subCategory === "Publication dans une revue indexée" ? (
+                  <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                    <h3 className="text-xs font-bold text-gray-700 mb-3 flex items-center">
+                      <div className="w-1.5 h-1.5 bg-uh2c-blue rounded-full mr-2"></div>
+                      Détails de la publication avec revue indexée
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Libellé de la Revue/Journal <span className="text-red-600">*</span></label>
+                        <p className="text-gray-900 text-xs">
+                          {selectedPublication.journal || (
+                            <span className="text-gray-400 italic">Non spécifié</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ISSN de la Revue/Journal <span className="text-red-600">*</span></label>
+                        <p className="text-gray-900 font-mono text-xs">
+                          {selectedPublication.issn || (
+                            <span className="text-gray-400 italic">Non spécifié</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Base d'indexation <span className="text-red-600">*</span></label>
+                        <p className="text-gray-900 text-xs">
+                          {selectedPublication.base || (
+                            <span className="text-gray-400 italic">Non spécifié</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Année de publication <span className="text-red-600">*</span></label>
+                        <p className="text-gray-900 text-xs font-medium">
+                          {selectedPublication.date ? selectedPublication.date : selectedPublication.year || (
+                            <span className="text-gray-400 italic">Non spécifié</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la revue <span className="text-red-600">*</span></label>
+                        <p className="text-gray-900 text-xs">
+                          {selectedPublication.lien ? (
+                            <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
+                          ) : (
+                            <span className="text-gray-400 italic">Non fourni</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
+                        <p className="text-gray-900 text-xs">
+                          {selectedPublication.justificatifUrl ? (
+                            <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
+                          ) : (
+                            <span className="text-gray-400 italic">Non fourni</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
                   <h3 className="text-xs font-bold text-gray-700 mb-3 flex items-center">
                     <div className="w-1.5 h-1.5 bg-uh2c-blue rounded-full mr-2"></div>
@@ -921,6 +1061,7 @@ export default function PublicationsPage() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {/* Tranche et Résumé */}
                 <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
@@ -1076,6 +1217,17 @@ export default function PublicationsPage() {
                   <div className="flex flex-col items-start">
                     <span className="font-medium text-gray-900">Brevets et droits</span>
                     <span className="text-sm text-gray-500">Brevets, propriété intellectuelle</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="h-16 text-left justify-start p-4 hover:bg-blue-50 hover:border-blue-300"
+                  onClick={() => setSelectedCategory("Chapitre")}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-gray-900">Chapitre</span>
+                    <span className="text-sm text-gray-500">Chapitres d'ouvrages, contributions</span>
                   </div>
                 </Button>
                 
@@ -1346,14 +1498,6 @@ export default function PublicationsPage() {
                         </Select>
                         {indexeeErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
                       </div>
-                      <div className="mb-4">
-                        <Label htmlFor="doi-indexee">DOI</Label>
-                        <Input id="doi-indexee" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                      </div>
-                      <div className="mb-4">
-                        <Label htmlFor="orcid-indexee">ORCID</Label>
-                        <Input id="orcid-indexee" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
-                      </div>
                     </>
                   )}
                   <div className="mb-4">
@@ -1373,30 +1517,6 @@ export default function PublicationsPage() {
                       }}
                     />
                     {indexeeErrors.annee && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="tranche-indexee">
-                      Tranche <span className="text-red-600">*</span>
-                    </Label>
-                    <Select
-                      value={indexeeValues.tranche}
-                      onValueChange={(value) => {
-                        setIndexeeValues(v => ({ ...v, tranche: value }))
-                        if (value) setIndexeeErrors(err => ({ ...err, tranche: false }))
-                      }}
-                    >
-                      <SelectTrigger className={`h-11 rounded-lg text-base ${indexeeErrors.tranche ? 'border-red-500' : ''}`}>
-                        <SelectValue placeholder="Choisir une tranche" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tranche A">Tranche A</SelectItem>
-                        <SelectItem value="Tranche B">Tranche B</SelectItem>
-                        <SelectItem value="Tranche C">Tranche C</SelectItem>
-                        <SelectItem value="Tranche D">Tranche D</SelectItem>
-                        <SelectItem value="Non classée">Non classée</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {indexeeErrors.tranche && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
                   </div>
                   <div className="mb-4">
                     <Label htmlFor="lien-revue">
@@ -1503,13 +1623,12 @@ export default function PublicationsPage() {
                         e.preventDefault()
                         
                         // Validation de tous les champs obligatoires
-                        let errors = { titre: false, journal: false, issn: false, base: false, annee: false, tranche: false }
+                        let errors = { titre: false, journal: false, issn: false, base: false, annee: false }
                         if (!indexeeValues.titre) errors.titre = true
                         if (!indexeeValues.journal) errors.journal = true
                         if (!indexeeValues.issn) errors.issn = true
                         if (!indexeeValues.base) errors.base = true
                         if (!indexeeValues.annee) errors.annee = true
-                        if (!indexeeValues.tranche) errors.tranche = true
                         setIndexeeErrors(errors)
                         
                         // Validation d'année
@@ -1711,14 +1830,6 @@ export default function PublicationsPage() {
                       </SelectContent>
                     </Select>
                     {commErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="doi-comm">DOI</Label>
-                    <Input id="doi-comm" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-comm">ORCID</Label>
-                    <Input id="orcid-comm" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
                   </div>
                   <div className="mb-4">
                     <Label htmlFor="justif-comm" className={commErrors.justificatif ? 'text-red-600' : ''}>
@@ -2035,14 +2146,6 @@ export default function PublicationsPage() {
                     {commErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
                   </div>
                   <div className="mb-4">
-                    <Label htmlFor="doi-comm-inter">DOI</Label>
-                    <Input id="doi-comm-inter" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-comm-inter">ORCID</Label>
-                    <Input id="orcid-comm-inter" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
                     <Label htmlFor="justif-comm-inter">
                       Justificatif 
                       <span className={`ml-1 ${!commFormData.lien && !commFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
@@ -2196,14 +2299,6 @@ export default function PublicationsPage() {
                     <Input id="isbn-ouvrage" placeholder="ISBN" className="h-11 rounded-lg text-base" />
                   </div>
                   <div className="mb-4">
-                    <Label htmlFor="doi-ouvrage">DOI</Label>
-                    <Input id="doi-ouvrage" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-ouvrage">ORCID</Label>
-                    <Input id="orcid-ouvrage" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
                     <Label htmlFor="lien-ouvrage">
                       Lien
                       <span className={`ml-1 ${!ouvrageFormData.lien && !ouvrageFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
@@ -2352,6 +2447,991 @@ export default function PublicationsPage() {
                     </Button>
                   </div>
                 </form>
+              ) : selectedCategory === "Brevets et droits" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-brevet" className={brevetErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-brevet" 
+                      required 
+                      placeholder="Intitulé du brevet" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.intitule ? 'border-red-500' : ''}`}
+                      value={brevetValues.intitule}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {brevetErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="type-brevet" className={brevetErrors.type ? 'text-red-600' : ''}>
+                      Type <span className="text-red-600">*</span>
+                    </Label>
+                    <Select
+                      value={brevetValues.type}
+                      onValueChange={(value) => {
+                        setBrevetValues(v => ({ ...v, type: value }))
+                        if (value) setBrevetErrors(err => ({ ...err, type: false }))
+                      }}
+                    >
+                      <SelectTrigger className={`h-11 rounded-lg text-base ${brevetErrors.type ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Choisir un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Brevet d'invention">Brevet d'invention</SelectItem>
+                        <SelectItem value="Modèle d'utilité">Modèle d'utilité</SelectItem>
+                        <SelectItem value="Certificat d'utilité">Certificat d'utilité</SelectItem>
+                        <SelectItem value="Dessin et modèle">Dessin et modèle</SelectItem>
+                        <SelectItem value="Marque">Marque</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {brevetErrors.type && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="champ-application-brevet" className={brevetErrors.champApplication ? 'text-red-600' : ''}>
+                      Champ d'application <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="champ-application-brevet" 
+                      required 
+                      placeholder="Champ d'application" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.champApplication ? 'border-red-500' : ''}`}
+                      value={brevetValues.champApplication}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, champApplication: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, champApplication: false }))
+                      }}
+                    />
+                    {brevetErrors.champApplication && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-depot-brevet" className={brevetErrors.numeroDepot ? 'text-red-600' : ''}>
+                      Numéro de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="numero-depot-brevet" 
+                      required 
+                      placeholder="Numéro de dépôt" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.numeroDepot ? 'border-red-500' : ''}`}
+                      value={brevetValues.numeroDepot}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, numeroDepot: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, numeroDepot: false }))
+                      }}
+                    />
+                    {brevetErrors.numeroDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-depot-brevet" className={brevetErrors.dateDepot ? 'text-red-600' : ''}>
+                      Date de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="date-depot-brevet" 
+                      type="date"
+                      required 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.dateDepot ? 'border-red-500' : ''}`}
+                      value={brevetValues.dateDepot}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, dateDepot: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, dateDepot: false }))
+                      }}
+                    />
+                    {brevetErrors.dateDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-enregistrement-brevet">Numéro d'enregistrement</Label>
+                    <Input 
+                      id="numero-enregistrement-brevet" 
+                      placeholder="Numéro d'enregistrement" 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetValues.numeroEnregistrement}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, numeroEnregistrement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="partenaires-brevet">Partenaires</Label>
+                    <Input 
+                      id="partenaires-brevet" 
+                      placeholder="Partenaires" 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetValues.partenaires}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, partenaires: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-brevet">
+                      Lien
+                      <span className={`ml-1 ${!brevetFormData.lien && !brevetFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!brevetFormData.lien && !brevetFormData.justificatif ? '*' : (!brevetFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-brevet" 
+                      placeholder="https://..." 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetFormData.lien}
+                      onChange={(e) => {
+                        setBrevetFormData({ ...brevetFormData, lien: e.target.value })
+                        if (e.target.value || brevetFormData.justificatif) {
+                          setBrevetLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-brevet">
+                      Justificatifs 
+                      <span className={`ml-1 ${!brevetFormData.lien && !brevetFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!brevetFormData.lien && !brevetFormData.justificatif ? '*' : (!brevetFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!brevetFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setBrevetFormData({ ...brevetFormData, justificatif: file })
+                            if (file || brevetFormData.lien) {
+                              setBrevetLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-brevet"
+                        />
+                        <label htmlFor="justif-brevet" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {brevetFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setBrevetFormData({ ...brevetFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {brevetLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{brevetLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false }
+                        if (!brevetValues.intitule) errors.intitule = true
+                        if (!brevetValues.type) errors.type = true
+                        if (!brevetValues.champApplication) errors.champApplication = true
+                        if (!brevetValues.numeroDepot) errors.numeroDepot = true
+                        if (!brevetValues.dateDepot) errors.dateDepot = true
+                        setBrevetErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!brevetFormData.lien && !brevetFormData.justificatif) {
+                          setBrevetLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Brevet ajouté manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          brevetFormData,
+                          brevetValues
+                        })
+                        
+                        // Reset form
+                        setBrevetFormData({ lien: "", justificatif: null })
+                        setBrevetLienJustificatifError("")
+                        setBrevetErrors({ intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false })
+                        setBrevetValues({ intitule: '', type: '', champApplication: '', numeroDepot: '', dateDepot: '', numeroEnregistrement: '', partenaires: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Revue bibliographique" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-revue" className={revueErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-revue" 
+                      required 
+                      placeholder="Intitulé du brevet" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.intitule ? 'border-red-500' : ''}`}
+                      value={revueValues.intitule}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {revueErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="type-revue" className={revueErrors.type ? 'text-red-600' : ''}>
+                      Type <span className="text-red-600">*</span>
+                    </Label>
+                    <Select
+                      value={revueValues.type}
+                      onValueChange={(value) => {
+                        setRevueValues(v => ({ ...v, type: value }))
+                        if (value) setRevueErrors(err => ({ ...err, type: false }))
+                      }}
+                    >
+                      <SelectTrigger className={`h-11 rounded-lg text-base ${revueErrors.type ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Choisir un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Brevet d'invention">Brevet d'invention</SelectItem>
+                        <SelectItem value="Modèle d'utilité">Modèle d'utilité</SelectItem>
+                        <SelectItem value="Certificat d'utilité">Certificat d'utilité</SelectItem>
+                        <SelectItem value="Dessin et modèle">Dessin et modèle</SelectItem>
+                        <SelectItem value="Marque">Marque</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {revueErrors.type && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="champ-application-revue" className={revueErrors.champApplication ? 'text-red-600' : ''}>
+                      Champ d'application <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="champ-application-revue" 
+                      required 
+                      placeholder="Champ d'application" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.champApplication ? 'border-red-500' : ''}`}
+                      value={revueValues.champApplication}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, champApplication: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, champApplication: false }))
+                      }}
+                    />
+                    {revueErrors.champApplication && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-depot-revue" className={revueErrors.numeroDepot ? 'text-red-600' : ''}>
+                      Numéro de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="numero-depot-revue" 
+                      required 
+                      placeholder="Numéro de dépôt" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.numeroDepot ? 'border-red-500' : ''}`}
+                      value={revueValues.numeroDepot}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, numeroDepot: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, numeroDepot: false }))
+                      }}
+                    />
+                    {revueErrors.numeroDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-depot-revue" className={revueErrors.dateDepot ? 'text-red-600' : ''}>
+                      Date de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="date-depot-revue" 
+                      type="date"
+                      required 
+                      className={`h-11 rounded-lg text-base ${revueErrors.dateDepot ? 'border-red-500' : ''}`}
+                      value={revueValues.dateDepot}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, dateDepot: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, dateDepot: false }))
+                      }}
+                    />
+                    {revueErrors.dateDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-enregistrement-revue">Numéro d'enregistrement</Label>
+                    <Input 
+                      id="numero-enregistrement-revue" 
+                      placeholder="Numéro d'enregistrement" 
+                      className="h-11 rounded-lg text-base"
+                      value={revueValues.numeroEnregistrement}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, numeroEnregistrement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="partenaires-revue">Partenaires</Label>
+                    <Input 
+                      id="partenaires-revue" 
+                      placeholder="Partenaires" 
+                      className="h-11 rounded-lg text-base"
+                      value={revueValues.partenaires}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, partenaires: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-revue">
+                      Lien
+                      <span className={`ml-1 ${!revueFormData.lien && !revueFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!revueFormData.lien && !revueFormData.justificatif ? '*' : (!revueFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-revue" 
+                      placeholder="https://..." 
+                      className="h-11 rounded-lg text-base"
+                      value={revueFormData.lien}
+                      onChange={(e) => {
+                        setRevueFormData({ ...revueFormData, lien: e.target.value })
+                        if (e.target.value || revueFormData.justificatif) {
+                          setRevueLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-revue">
+                      Justificatifs 
+                      <span className={`ml-1 ${!revueFormData.lien && !revueFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!revueFormData.lien && !revueFormData.justificatif ? '*' : (!revueFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!revueFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setRevueFormData({ ...revueFormData, justificatif: file })
+                            if (file || revueFormData.lien) {
+                              setRevueLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-revue"
+                        />
+                        <label htmlFor="justif-revue" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {revueFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setRevueFormData({ ...revueFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {revueLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{revueLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false }
+                        if (!revueValues.intitule) errors.intitule = true
+                        if (!revueValues.type) errors.type = true
+                        if (!revueValues.champApplication) errors.champApplication = true
+                        if (!revueValues.numeroDepot) errors.numeroDepot = true
+                        if (!revueValues.dateDepot) errors.dateDepot = true
+                        setRevueErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!revueFormData.lien && !revueFormData.justificatif) {
+                          setRevueLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Revue bibliographique ajoutée manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          revueFormData,
+                          revueValues
+                        })
+                        
+                        // Reset form
+                        setRevueFormData({ lien: "", justificatif: null })
+                        setRevueLienJustificatifError("")
+                        setRevueErrors({ intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false })
+                        setRevueValues({ intitule: '', type: '', champApplication: '', numeroDepot: '', dateDepot: '', numeroEnregistrement: '', partenaires: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Distinctions et Prix" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-distinction" className={distinctionErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-distinction" 
+                      required 
+                      placeholder="Intitulé de la distinction/prix" 
+                      className={`h-11 rounded-lg text-base ${distinctionErrors.intitule ? 'border-red-500' : ''}`}
+                      value={distinctionValues.intitule}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setDistinctionErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {distinctionErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="evenement-distinction">Évènement</Label>
+                    <Input 
+                      id="evenement-distinction" 
+                      placeholder="Nom de l'évènement" 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionValues.evenement}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, evenement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="organisme-distinction">Organisme</Label>
+                    <Input 
+                      id="organisme-distinction" 
+                      placeholder="Nom de l'organisme" 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionValues.organisme}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, organisme: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-distinction" className={distinctionErrors.date ? 'text-red-600' : ''}>
+                      Date <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="date-distinction"
+                      type="date"
+                      required
+                      className={`h-11 rounded-lg text-base ${distinctionErrors.date ? 'border-red-500' : ''}`}
+                      value={distinctionValues.date}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, date: e.target.value }))
+                        if (e.target.value) setDistinctionErrors(err => ({ ...err, date: false }))
+                      }}
+                    />
+                    {distinctionErrors.date && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-distinction">
+                      Lien
+                      <span className={`ml-1 ${!distinctionFormData.lien && !distinctionFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!distinctionFormData.lien && !distinctionFormData.justificatif ? '*' : (!distinctionFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-distinction" 
+                      placeholder="https://..." 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionFormData.lien}
+                      onChange={(e) => {
+                        setDistinctionFormData({ ...distinctionFormData, lien: e.target.value })
+                        if (e.target.value || distinctionFormData.justificatif) {
+                          setDistinctionLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-distinction">
+                      Justificatifs 
+                      <span className={`ml-1 ${!distinctionFormData.lien && !distinctionFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!distinctionFormData.lien && !distinctionFormData.justificatif ? '*' : (!distinctionFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!distinctionFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setDistinctionFormData({ ...distinctionFormData, justificatif: file })
+                            if (file || distinctionFormData.lien) {
+                              setDistinctionLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-distinction"
+                        />
+                        <label htmlFor="justif-distinction" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {distinctionFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDistinctionFormData({ ...distinctionFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {distinctionLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{distinctionLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, date: false }
+                        if (!distinctionValues.intitule) errors.intitule = true
+                        if (!distinctionValues.date) errors.date = true
+                        setDistinctionErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!distinctionFormData.lien && !distinctionFormData.justificatif) {
+                          setDistinctionLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Distinction ajoutée manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          distinctionFormData,
+                          distinctionValues
+                        })
+                        
+                        // Reset form
+                        setDistinctionFormData({ lien: "", justificatif: null })
+                        setDistinctionLienJustificatifError("")
+                        setDistinctionErrors({ intitule: false, date: false })
+                        setDistinctionValues({ intitule: '', evenement: '', organisme: '', date: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Chapitre" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-chapitre" className={chapitreErrors.intituleChapitre ? 'text-red-600' : ''}>
+                      Intitulé du chapitre <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-chapitre" 
+                      required 
+                      placeholder="Intitulé du chapitre" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.intituleChapitre ? 'border-red-500' : ''}`}
+                      value={chapitreValues.intituleChapitre}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, intituleChapitre: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, intituleChapitre: false }))
+                      }}
+                    />
+                    {chapitreErrors.intituleChapitre && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-chapitre">Numéro du chapitre</Label>
+                    <Input 
+                      id="numero-chapitre" 
+                      placeholder="Numéro du chapitre" 
+                      className="h-11 rounded-lg text-base"
+                      value={chapitreValues.numeroChapitre}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, numeroChapitre: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <Label htmlFor="page-de">Page de</Label>
+                      <Input 
+                        id="page-de" 
+                        placeholder="Page de" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.pageDe}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, pageDe: e.target.value }))
+                        }}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="page-a">Page à</Label>
+                      <Input 
+                        id="page-a" 
+                        placeholder="Page à" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.pageA}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, pageA: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-ouvrage" className={chapitreErrors.intituleOuvrage ? 'text-red-600' : ''}>
+                      Intitulé d'ouvrage <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-ouvrage" 
+                      required 
+                      placeholder="Intitulé d'ouvrage" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.intituleOuvrage ? 'border-red-500' : ''}`}
+                      value={chapitreValues.intituleOuvrage}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, intituleOuvrage: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, intituleOuvrage: false }))
+                      }}
+                    />
+                    {chapitreErrors.intituleOuvrage && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="maison-edition" className={chapitreErrors.maisonEdition ? 'text-red-600' : ''}>
+                      Maison d'édition <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="maison-edition" 
+                      required 
+                      placeholder="Maison d'édition" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.maisonEdition ? 'border-red-500' : ''}`}
+                      value={chapitreValues.maisonEdition}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, maisonEdition: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, maisonEdition: false }))
+                      }}
+                    />
+                    {chapitreErrors.maisonEdition && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="annee-chapitre" className={chapitreErrors.annee ? 'text-red-600' : ''}>
+                      Année <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="annee-chapitre"
+                      type="number"
+                      required
+                      placeholder="2025"
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.annee ? 'border-red-500' : ''}`}
+                      value={chapitreValues.annee}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, annee: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, annee: false }))
+                      }}
+                    />
+                    {chapitreErrors.annee && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <Label htmlFor="issn-chapitre">ISSN</Label>
+                      <Input 
+                        id="issn-chapitre" 
+                        placeholder="ISSN" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.issn}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, issn: e.target.value }))
+                        }}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="isbn-chapitre">ISBN</Label>
+                      <Input 
+                        id="isbn-chapitre" 
+                        placeholder="ISBN" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.isbn}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, isbn: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-chapitre">
+                      Lien
+                      <span className={`ml-1 ${!chapitreFormData.lien && !chapitreFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!chapitreFormData.lien && !chapitreFormData.justificatif ? '*' : (!chapitreFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-chapitre" 
+                      placeholder="https://..." 
+                      className="h-11 rounded-lg text-base"
+                      value={chapitreFormData.lien}
+                      onChange={(e) => {
+                        setChapitreFormData({ ...chapitreFormData, lien: e.target.value })
+                        if (e.target.value || chapitreFormData.justificatif) {
+                          setChapitreLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-chapitre">
+                      Justificatifs 
+                      <span className={`ml-1 ${!chapitreFormData.lien && !chapitreFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!chapitreFormData.lien && !chapitreFormData.justificatif ? '*' : (!chapitreFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!chapitreFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setChapitreFormData({ ...chapitreFormData, justificatif: file })
+                            if (file || chapitreFormData.lien) {
+                              setChapitreLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-chapitre"
+                        />
+                        <label htmlFor="justif-chapitre" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {chapitreFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setChapitreFormData({ ...chapitreFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {chapitreLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{chapitreLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intituleChapitre: false, intituleOuvrage: false, maisonEdition: false, annee: false }
+                        if (!chapitreValues.intituleChapitre) errors.intituleChapitre = true
+                        if (!chapitreValues.intituleOuvrage) errors.intituleOuvrage = true
+                        if (!chapitreValues.maisonEdition) errors.maisonEdition = true
+                        if (!chapitreValues.annee) errors.annee = true
+                        setChapitreErrors(errors)
+                        
+                        // Validation d'année
+                        const yearInput = document.getElementById('annee-chapitre') as HTMLInputElement
+                        if (yearInput && parseInt(yearInput.value) > getCurrentYear()) {
+                          setYearError("L'année ne peut pas être supérieure à l'année actuelle")
+                          return
+                        }
+                        
+                        // Validation lien OU justificatif
+                        if (!chapitreFormData.lien && !chapitreFormData.justificatif) {
+                          setChapitreLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Chapitre ajouté manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          chapitreFormData,
+                          chapitreValues
+                        })
+                        
+                        // Reset form
+                        setChapitreFormData({ lien: "", justificatif: null })
+                        setChapitreLienJustificatifError("")
+                        setYearError("")
+                        setChapitreErrors({ intituleChapitre: false, intituleOuvrage: false, maisonEdition: false, annee: false })
+                        setChapitreValues({ intituleChapitre: '', numeroChapitre: '', pageDe: '', pageA: '', intituleOuvrage: '', maisonEdition: '', annee: '', issn: '', isbn: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
               ) : (
                 // Formulaire classique pour les autres cas
                 <>
@@ -2435,28 +3515,6 @@ export default function PublicationsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <Label htmlFor="doi">DOI</Label>
-                      <Input 
-                        id="doi" 
-                        value={formData.doi}
-                        onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
-                        placeholder="10.1234/abcd.2024.001" 
-                        className="h-11 rounded-lg text-base" 
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <Label htmlFor="orcid">ORCID</Label>
-                      <Input 
-                        id="orcid" 
-                        value={formData.orcid}
-                        onChange={(e) => setFormData({ ...formData, orcid: e.target.value })}
-                        placeholder="0000-0000-0000-0000" 
-                        className="h-11 rounded-lg text-base" 
-                      />
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">

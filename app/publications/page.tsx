@@ -35,8 +35,6 @@ interface Publication {
   subCategory?: string
   mode: string
   memberId: string
-  doi?: string
-  orcid?: string
   journal?: string
   citations?: number
   abstract?: string
@@ -45,7 +43,6 @@ interface Publication {
   orcidUrl?: string
   doiUrl?: string
   detectedAffiliation?: string
-  tranche?: string
   // Communications (optional)
   manifestation?: string
   ville?: string
@@ -53,23 +50,36 @@ interface Publication {
   base?: string
   jour?: string
   mois?: string
+  // Nouveaux champs pour communications
+  intituleCommunication?: string // Intitulé de la communication
+  nomManifestation?: string // Nom de la manifestation
+  baseIndexationComm?: string // Bases d'indexation pour communications
   // Ouvrages (optional)
   maisonEdition?: string
   isbn?: string
   issn?: string
   // Brevets et droits (optional)
-  brevetNumero?: string
-  brevetPays?: string
+  type?: string
+  champApplication?: string
+  numeroDepot?: string
   dateDepot?: string
-  datePublicationBrevet?: string
-  titulaire?: string
+  numeroEnregistrement?: string
+  partenaires?: string
   // Distinctions et Prix (optional)
-  distinctionNom?: string
+  evenement?: string
   organisme?: string
-  niveau?: string
+  // Chapitre (optional)
+  numeroChapitre?: string
+  pageDe?: string
+  pageA?: string
+  intituleOuvrage?: string
   // Publications (revue indexée)
   lien?: string
   justificatifUrl?: string
+  // Nouveaux champs pour informations scientifiques
+  titrePublication?: string // Titre de la publication (différent de title/intitulé)
+  nomRevue?: string // Nom de la revue/journal (différent de journal/libellé)
+  baseIndexation?: string // Base d'indexation (plus spécifique que base)
 }
 
 export default function PublicationsPage() {
@@ -97,16 +107,14 @@ export default function PublicationsPage() {
     journal: false,
     issn: false,
     base: false,
-    annee: false,
-    tranche: false
+    annee: false
   })
   const [indexeeValues, setIndexeeValues] = useState({
     titre: '',
     journal: '',
     issn: '',
     base: '',
-    annee: '',
-    tranche: ''
+    annee: ''
   })
   const [ouvrageErrors, setOuvrageErrors] = useState({
     intitule: false,
@@ -123,25 +131,100 @@ export default function PublicationsPage() {
     justificatif: null as File | null
   })
   const [ouvrageLienJustificatifError, setOuvrageLienJustificatifError] = useState("")
+  const [brevetErrors, setBrevetErrors] = useState({
+    intitule: false,
+    type: false,
+    champApplication: false,
+    numeroDepot: false,
+    dateDepot: false
+  })
+  const [brevetValues, setBrevetValues] = useState({
+    intitule: '',
+    type: '',
+    champApplication: '',
+    numeroDepot: '',
+    dateDepot: '',
+    numeroEnregistrement: '',
+    partenaires: ''
+  })
+  const [brevetFormData, setBrevetFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [brevetLienJustificatifError, setBrevetLienJustificatifError] = useState("")
+  const [revueErrors, setRevueErrors] = useState({
+    intitule: false,
+    type: false,
+    champApplication: false,
+    numeroDepot: false,
+    dateDepot: false
+  })
+  const [revueValues, setRevueValues] = useState({
+    intitule: '',
+    type: '',
+    champApplication: '',
+    numeroDepot: '',
+    dateDepot: '',
+    numeroEnregistrement: '',
+    partenaires: ''
+  })
+  const [revueFormData, setRevueFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [revueLienJustificatifError, setRevueLienJustificatifError] = useState("")
+  const [distinctionErrors, setDistinctionErrors] = useState({
+    intitule: false,
+    date: false
+  })
+  const [distinctionValues, setDistinctionValues] = useState({
+    intitule: '',
+    evenement: '',
+    organisme: '',
+    date: ''
+  })
+  const [distinctionFormData, setDistinctionFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [distinctionLienJustificatifError, setDistinctionLienJustificatifError] = useState("")
+  const [chapitreErrors, setChapitreErrors] = useState({
+    intituleChapitre: false,
+    intituleOuvrage: false,
+    maisonEdition: false,
+    annee: false
+  })
+  const [chapitreValues, setChapitreValues] = useState({
+    intituleChapitre: '',
+    numeroChapitre: '',
+    pageDe: '',
+    pageA: '',
+    intituleOuvrage: '',
+    maisonEdition: '',
+    annee: '',
+    issn: '',
+    isbn: ''
+  })
+  const [chapitreFormData, setChapitreFormData] = useState({
+    lien: "",
+    justificatif: null as File | null
+  })
+  const [chapitreLienJustificatifError, setChapitreLienJustificatifError] = useState("")
   const [formData, setFormData] = useState({
     title: "",
     authors: "",
     year: new Date().getFullYear(),
     journal: "",
-    doi: "",
-    orcid: "",
     source: "",
     abstract: "",
     lien: "",
     justificatifs: [] as File[],
-    tranche: ""
   })
   const [genericErrors, setGenericErrors] = useState({
     title: false,
     authors: false,
     year: false,
     source: false,
-    tranche: false
   })
   const [commErrors, setCommErrors] = useState({
     intitule: false,
@@ -190,8 +273,6 @@ export default function PublicationsPage() {
       source: "Scopus",
       status: "pending",
       memberId: "member1",
-      doi: "10.1016/j.ijom.2024.00321",
-      orcid: "0000-0002-1825-0097",
       issn: "0925-4773",
       base: "Scopus",
       journal: "Journal of Medical Imaging",
@@ -205,7 +286,6 @@ export default function PublicationsPage() {
       category: "Publications",
       subCategory: "Publication dans une revue avec comité de lecture",
       mode: "Automatique",
-      tranche: "Tranche A"
     },
     {
       id: "2",
@@ -216,7 +296,6 @@ export default function PublicationsPage() {
       source: "WOS",
       status: "validated",
       memberId: "member1",
-      doi: "10.5678/efgh.2023.002",
       journal: "Computational Linguistics",
       citations: 8,
       abstract:
@@ -225,7 +304,6 @@ export default function PublicationsPage() {
       detectedAffiliation: "Université Hassan II Casablanca",
       category: "Publications",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "3",
@@ -235,7 +313,6 @@ export default function PublicationsPage() {
       source: "Scopus",
       status: "pending",
       memberId: "member1",
-      doi: "10.9012/ijkl.2023.003",
       journal: "Sustainable Cities Journal",
       citations: 15,
       abstract: "An analysis of smart city initiatives and their impact on sustainability...",
@@ -243,7 +320,6 @@ export default function PublicationsPage() {
       detectedAffiliation: "Université Hassan II Casablanca",
       category: "Ouvrages",
       mode: "Manuel",
-      tranche: "Tranche C"
     },
     // Exemples supplémentaires pour tester la pagination
     {
@@ -256,7 +332,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Publications",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "5",
@@ -268,7 +343,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Ouvrages",
       mode: "Manuel",
-      tranche: "Tranche A"
     },
     {
       id: "6",
@@ -288,7 +362,6 @@ export default function PublicationsPage() {
       lien: "https://conf-ia-sante.ma/programme",
       justificatifUrl: "https://example.com/justificatif-communication-ia-sante.pdf",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "7",
@@ -300,7 +373,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Publications",
       mode: "Automatique",
-      tranche: "Tranche A"
     },
     {
       id: "8",
@@ -312,7 +384,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Ouvrages",
       mode: "Manuel",
-      tranche: "Tranche C"
     },
     {
       id: "9",
@@ -330,11 +401,8 @@ export default function PublicationsPage() {
       pays: "France",
       base: "Scopus",
       lien: "https://icae-conf.org/program",
-      doi: "10.1145/icae.2025.001",
-      orcid: "0000-0001-2345-6789",
       justificatifUrl: "https://example.com/justificatif-ai-ethics-society.pdf",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "10",
@@ -346,7 +414,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Publications",
       mode: "Automatique",
-      tranche: "Tranche C"
     },
     {
       id: "11",
@@ -358,7 +425,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Ouvrages",
       mode: "Manuel",
-      tranche: "Tranche A"
     },
     {
       id: "12",
@@ -370,7 +436,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Communications",
       mode: "Automatique",
-      tranche: "Tranche D"
     },
     {
       id: "13",
@@ -382,7 +447,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Publications",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "14",
@@ -394,7 +458,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Ouvrages",
       mode: "Manuel",
-      tranche: "Tranche C"
     },
     {
       id: "15",
@@ -406,7 +469,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Distinctions et Prix",
       mode: "Manuel",
-      tranche: "Non classée"
     },
     {
       id: "16",
@@ -418,7 +480,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Distinctions et Prix",
       mode: "Manuel",
-      tranche: "Non classée"
     },
     {
       id: "17",
@@ -430,7 +491,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Distinctions et Prix",
       mode: "Automatique",
-      tranche: "Non classée"
     },
     {
       id: "19",
@@ -442,7 +502,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Revue bibliographique",
       mode: "Manuel",
-      tranche: "Tranche A"
     },
     {
       id: "20",
@@ -454,7 +513,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Revue bibliographique",
       mode: "Automatique",
-      tranche: "Tranche B"
     },
     {
       id: "21",
@@ -466,7 +524,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Revue bibliographique",
       mode: "Manuel",
-      tranche: "Tranche C"
     },
     {
       id: "22",
@@ -477,13 +534,10 @@ export default function PublicationsPage() {
       status: "pending",
       memberId: "member1",
       category: "Brevets et droits",
-      doi: "10.1234/abcd.2024.001",
-      orcid: "0000-0000-0000-0000",
       journal: "Journal of Applied Cryptography",
       abstract: "Brevet portant sur une méthode de chiffrement et de gestion de clés.",
       lien: "https://example.com/brevet-chiffrement",
       mode: "Manuel",
-      tranche: "Non classée"
     },
     {
       id: "18",
@@ -495,7 +549,6 @@ export default function PublicationsPage() {
       memberId: "member1",
       category: "Communications",
       mode: "Automatique",
-      tranche: "Tranche D"
     },
   ])
 
@@ -649,6 +702,7 @@ export default function PublicationsPage() {
                       <SelectContent>
                         <SelectItem value="all">Toutes les catégories</SelectItem>
                         <SelectItem value="Brevets et droits">Brevets et droits</SelectItem>
+                        <SelectItem value="Chapitre">Chapitre</SelectItem>
                         {[...new Set(publications.map((p) => p.category))].map((cat) => (
                           <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
@@ -754,7 +808,7 @@ export default function PublicationsPage() {
                               </a>
                             ) : pub.source === "ORCID" ? (
                               <a 
-                                href={pub.orcidUrl || "https://orcid.org"} 
+                                href="https://orcid.org" 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="inline-flex items-center text-blue-600 underline hover:text-blue-800 text-xs"
@@ -764,7 +818,7 @@ export default function PublicationsPage() {
                               </a>
                             ) : pub.source === "DOI" ? (
                               <a 
-                                href={pub.doiUrl || `https://doi.org/${pub.doi}`} 
+                                href={pub.doiUrl || `https://doi.org/10.1234/abcd.2024.001`} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="inline-flex items-center text-blue-600 underline hover:text-blue-800 text-xs"
@@ -946,13 +1000,13 @@ export default function PublicationsPage() {
                 <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs font-semibold text-gray-700 mb-1 block">{selectedPublication.category === "Ouvrages" ? "Titre de l'ouvrage" : selectedPublication.category === "Communications" ? "Intitulé de la communication *" : selectedPublication.category === "Revue bibliographique" ? "Titre de la revue bibliographique" : selectedPublication.category === "Distinctions et Prix" ? "Titre de la publication *" : "Intitulé de la publication *"}</label>
-                      <p className="text-gray-900 font-medium text-sm leading-relaxed">{selectedPublication.title || <span className="text-gray-400 italic">Entrez le titre...</span>}</p>
+                      <label className="text-xs font-semibold text-gray-700 mb-1 block">{selectedPublication.category === "Ouvrages" ? "Intitulé *" : selectedPublication.category === "Communications" ? "Intitulé de la communication *" : selectedPublication.category === "Brevets et droits" ? "Intitulé *" : selectedPublication.category === "Distinctions et Prix" ? "Intitulé *" : selectedPublication.category === "Revue bibliographique" ? "Intitulé *" : "Intitulé de la publication *"}</label>
+                      <p className="text-gray-900 font-medium text-sm leading-relaxed">{selectedPublication.category === "Ouvrages" ? (selectedPublication.title || <span className="text-gray-400 italic">Intitulé de l'ouvrage</span>) : selectedPublication.category === "Brevets et droits" ? (selectedPublication.title || <span className="text-gray-400 italic">Intitulé du brevet</span>) : selectedPublication.category === "Distinctions et Prix" ? (selectedPublication.title || <span className="text-gray-400 italic">Intitulé de la distinction/prix</span>) : selectedPublication.category === "Revue bibliographique" ? (selectedPublication.title || <span className="text-gray-400 italic">Intitulé du brevet</span>) : (selectedPublication.title || <span className="text-gray-400 italic">Machine Learning Applications in Healthcare Systems</span>)}</p>
                     </div>
                     
                     <div>
                       <label className="text-xs font-semibold text-gray-700 mb-1 block">Auteurs</label>
-                      <p className="text-gray-900 text-sm">{selectedPublication.authors || <span className="text-gray-400 italic">Entrez les auteurs...</span>}</p>
+                      <p className="text-gray-900 text-sm">{selectedPublication.authors || <span className="text-gray-400 italic">Dr. Ahmed Benali, Prof. Sarah Johnson, Dr. Mohamed Alami</span>}</p>
                     </div>
                   </div>
                 </div>
@@ -976,40 +1030,24 @@ export default function PublicationsPage() {
                     {selectedPublication.category === "Distinctions et Prix" && (
                       <>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Évènement</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).evenement || <span className="text-gray-400 italic">Nom de l'évènement</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Journal/Revue</label>
-                          {selectedPublication.journal && (
-                            <p className="text-gray-900 text-xs">{selectedPublication.journal}</p>
-                          )}
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Organisme</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).organisme || <span className="text-gray-400 italic">Nom de l'organisme</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">DOI</label>
-                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.doi || <span className="text-gray-400 italic">10.1234/abcd.2024.001</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">jj/mm/aaaa</span>}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Source <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</p>
-                        </div>
-                        {selectedPublication.abstract && (
-                          <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Résumé</label>
-                            <p className="text-gray-900 text-xs">{selectedPublication.abstract}</p>
-                          </div>
-                        )}
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien <span className="text-red-600">*</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://...</span>
+                              <span className="text-gray-400 italic">https://awards.acm.org/award-winners</span>
                             )}
                           </p>
                           <div className="text-[11px] text-gray-600 mt-1">
@@ -1017,29 +1055,32 @@ export default function PublicationsPage() {
                           </div>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span></label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez — PDF, DOC, DOCX jusqu'à 10MB</span>
+                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez</span>
                             )}
                           </p>
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            PDF, DOC, DOCX jusqu'à 10MB
+                          </div>
                         </div>
                       </>
                     )}
                     {selectedPublication.category === "Communications" && (
                       <>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Type de communication</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.subCategory || <span className="text-gray-400 italic">Communication nationale</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Intitulé <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.intituleCommunication || <span className="text-gray-400 italic">Intitulé de la communication</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Manifestation</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.manifestation || <span className="text-gray-400 italic">Conférence Internationale ABC 2024</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Manifestation <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.nomManifestation || <span className="text-gray-400 italic">Nom de la manifestation</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date <span className="text-red-600">*</span></label>
                           <div className="grid grid-cols-3 gap-2 text-xs text-gray-900">
                             <span>{(selectedPublication as any).jour || <span className="text-gray-400 italic">Jour</span>}</span>
                             <span>{(selectedPublication as any).mois || <span className="text-gray-400 italic">Mois</span>}</span>
@@ -1047,40 +1088,31 @@ export default function PublicationsPage() {
                           </div>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Ville</label>
-                          <p className="text-gray-900 text-xs">{(selectedPublication as any).ville || <span className="text-gray-400 italic">Casablanca</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Ville <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).ville || <span className="text-gray-400 italic">Ville</span>}</p>
                         </div>
                         {selectedPublication.subCategory === "Communication internationale" && (
                           <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Pays</label>
-                            <p className="text-gray-900 text-xs">{(selectedPublication as any).pays || <span className="text-gray-400 italic">Maroc</span>}</p>
+                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Pays <span className="text-red-600">*</span></label>
+                            <p className="text-gray-900 text-xs">{(selectedPublication as any).pays || <span className="text-gray-400 italic">Pays</span>}</p>
                           </div>
                         )}
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la manifestation <span className="text-gray-500">(optionnel)</span></label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la manifestation <span className="text-red-600">*</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://conference-abc.org</span>
+                              <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                             )}
                           </p>
+                          <div className="text-[11px] text-gray-600 mt-1">
+                            Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                          </div>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Bases d'indexation</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.base || <span className="text-gray-400 italic">Scopus</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Bases d'indexation <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.baseIndexationComm || <span className="text-gray-400 italic">Choisir une base d'indexation</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatif <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
@@ -1088,11 +1120,11 @@ export default function PublicationsPage() {
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Non fourni</span>
+                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez</span>
                             )}
                           </p>
-                          <div className="text-[11px] text-gray-600 mt-1">
-                            Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            PDF, DOC, DOCX jusqu'à 10MB
                           </div>
                         </div>
                       </>
@@ -1101,30 +1133,28 @@ export default function PublicationsPage() {
                     {selectedPublication.category === "Brevets et droits" && (
                       <>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Type <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).type || <span className="text-gray-400 italic">Choisir un type</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Journal/Revue</label>
-                          {selectedPublication.journal && (
-                            <p className="text-gray-900 text-xs">{selectedPublication.journal}</p>
-                          )}
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Champ d'application <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).champApplication || <span className="text-gray-400 italic">Champ d'application</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">DOI</label>
-                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.doi || <span className="text-gray-400 italic">10.1234/abcd.2024.001</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Numéro de dépôt <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).numeroDepot || <span className="text-gray-400 italic">Numéro de dépôt</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de dépôt <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).dateDepot || <span className="text-gray-400 italic">jj/mm/aaaa</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Source <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Numéro d'enregistrement</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).numeroEnregistrement || <span className="text-gray-400 italic">Numéro d'enregistrement</span>}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Résumé</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.abstract || <span className="text-gray-400 italic">Brevet portant sur une méthode de chiffrement et de gestion de clés.</span>}</p>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Partenaires</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).partenaires || <span className="text-gray-400 italic">Partenaires</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien <span className="text-red-600">*</span></label>
@@ -1132,7 +1162,7 @@ export default function PublicationsPage() {
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://example.com/brevet-chiffrement</span>
+                              <span className="text-gray-400 italic">https://patents.google.com/patent/US12345678B2</span>
                             )}
                           </p>
                           <div className="text-[11px] text-gray-600 mt-1">
@@ -1140,14 +1170,17 @@ export default function PublicationsPage() {
                           </div>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span></label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez — PDF, DOC, DOCX jusqu'à 10MB</span>
+                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez</span>
                             )}
                           </p>
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            PDF, DOC, DOCX jusqu'à 10MB
+                          </div>
                         </div>
                       </>
                     )}
@@ -1157,94 +1190,27 @@ export default function PublicationsPage() {
                         <p className="text-gray-900 text-xs">{selectedPublication.subCategory}</p>
                       </div>
                     )}
-                    {selectedPublication.category === "Publications" && selectedPublication.journal && (
-                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Libellé de la Revue/Journal <span className="text-red-600">*</span></label>
-                        <p className="text-gray-900 text-xs">{selectedPublication.journal}</p>
-                      </div>
-                    )}
-                    {!(selectedPublication.category === "Publications" && selectedPublication.subCategory === "Publication dans une revue avec comité de lecture") && selectedPublication.category !== "Communications" && selectedPublication.category !== "Brevets et droits" && selectedPublication.doi && (
-                      <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">DOI</label>
-                        <p className="text-gray-900 font-mono text-xs">{selectedPublication.doi}</p>
-                      </div>
-                    )}
                     {selectedPublication.category === "Publications" && selectedPublication.subCategory === "Publication dans une revue avec comité de lecture" && (
                       <>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de publication <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2024</span>}</p>
-                    </div>
-                    {selectedPublication.category === "Publications" && (
-                          <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Tranche</label>
-                            <p className="text-gray-900 text-xs">{selectedPublication.tranche || <span className="text-gray-400 italic">Choisir une tranche</span>}</p>
-                          </div>
-                        )}
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la revue <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">
-                            {selectedPublication.lien ? (
-                              <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
-                            ) : (
-                              <span className="text-gray-400 italic">https://...</span>
-                            )}
-                          </p>
-                          <div className="text-[11px] text-gray-600 mt-1">
-                            Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatif <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
-                          <p className="text-gray-900 text-xs">
-                            {selectedPublication.justificatifUrl ? (
-                              <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
-                            ) : (
-                              <span className="text-gray-400 italic">Non fourni</span>
-                            )}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                    {selectedPublication.category === "Publications" && selectedPublication.subCategory !== "Publication dans une revue avec comité de lecture" && (
-                      <>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de publication <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2024</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Titre de la publication <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.titrePublication || <span className="text-gray-400 italic">Machine Learning Approaches for Clinical Decision Support Systems</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Libellé de la Revue/Journal <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.journal || <span className="text-gray-400 italic">IEEE Access</span>}</p>
+                          <p className="text-gray-900 text-xs">{selectedPublication.nomRevue || <span className="text-gray-400 italic">Nature Machine Intelligence</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.orcid || <span className="text-gray-400 italic">0000-0002-1825-0097</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de publication <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2024</span>}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">DOI</label>
-                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.doi || <span className="text-gray-400 italic">10.1109/TKDE.2022.3145632</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ISSN de la Revue/Journal <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.issn || <span className="text-gray-400 italic">2169-3536</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Base d'indexation <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.base || <span className="text-gray-400 italic">Scopus</span>}</p>
-                        </div>
-                        {selectedPublication.category === "Publications" && (
-                          <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Tranche</label>
-                            <p className="text-gray-900 text-xs">{selectedPublication.tranche || <span className="text-gray-400 italic">Tranche C</span>}</p>
-                          </div>
-                        )}
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la revue <span className="text-red-600">*</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://ieeexplore.ieee.org/document/1234567</span>
+                              <span className="text-gray-400 italic">https://www.nature.com/articles/s42256-024-00789-2</span>
                             )}
                           </p>
                           <div className="text-[11px] text-gray-600 mt-1">
@@ -1257,7 +1223,54 @@ export default function PublicationsPage() {
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Non fourni</span>
+                              <span className="text-gray-400 italic">Nature_Machine_Intelligence_Acceptance_2024.pdf</span>
+                            )}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                    {selectedPublication.category === "Publications" && selectedPublication.subCategory !== "Publication dans une revue avec comité de lecture" && (
+                      <>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Titre de la publication <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.titrePublication || <span className="text-gray-400 italic">Deep Learning for Natural Language Processing in Healthcare Applications</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Libellé de la Revue/Journal <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.nomRevue || <span className="text-gray-400 italic">Journal of Medical Internet Research</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ISSN de la Revue/Journal <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 font-mono text-xs">{selectedPublication.issn || <span className="text-gray-400 italic">1438-8871</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Base d'indexation <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.baseIndexation || <span className="text-gray-400 italic">PubMed, Scopus, Web of Science</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de publication <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2024</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien vers la revue <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">
+                            {selectedPublication.lien ? (
+                              <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
+                            ) : (
+                              <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
+                            )}
+                          </p>
+                          <div className="text-[11px] text-gray-600 mt-1">
+                            Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatif <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
+                          <p className="text-gray-900 text-xs">
+                            {selectedPublication.justificatifUrl ? (
+                              <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
+                            ) : (
+                              <span className="text-gray-400 italic">Publication_Acceptance_Letter_JMIR_2024.pdf</span>
                             )}
                           </p>
                         </div>
@@ -1281,21 +1294,13 @@ export default function PublicationsPage() {
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ISBN</label>
                           <p className="text-gray-900 text-xs">{(selectedPublication as any).isbn || <span className="text-gray-400 italic">ISBN</span>}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</p>
-                        </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien <span className="text-red-600">*</span></label>
                         <p className="text-gray-900 text-xs">
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://...</span>
+                              <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                           )}
                         </p>
                           <div className="text-[11px] text-gray-600 mt-1">
@@ -1308,60 +1313,66 @@ export default function PublicationsPage() {
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez — PDF, DOC, DOCX jusqu'à 10MB</span>
+                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez</span>
                             )}
-                      </p>
-                    </div>
+                          </p>
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            PDF, DOC, DOCX jusqu'à 10MB
+                          </div>
+                        </div>
                       </>
                     )}
                     {selectedPublication.category === "Revue bibliographique" && (
                       <>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Journal/Revue</label>
-                          {selectedPublication.journal && (
-                            <p className="text-gray-900 text-xs">{selectedPublication.journal}</p>
-                          )}
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Type <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).type || <span className="text-gray-400 italic">Choisir un type</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date</label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.date || selectedPublication.year || <span className="text-gray-400 italic">2025</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Champ d'application <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).champApplication || <span className="text-gray-400 italic">Champ d'application</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">ORCID</label>
-                          <p className="text-gray-900 font-mono text-xs">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Numéro de dépôt <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).numeroDepot || <span className="text-gray-400 italic">Numéro de dépôt</span>}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Source <span className="text-red-600">*</span></label>
-                          <p className="text-gray-900 text-xs">{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</p>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Date de dépôt <span className="text-red-600">*</span></label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).dateDepot || <span className="text-gray-400 italic">jj/mm/aaaa</span>}</p>
                         </div>
-                        {selectedPublication.abstract && (
-                          <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Résumé</label>
-                            <p className="text-gray-900 text-xs">{selectedPublication.abstract}</p>
-                          </div>
-                        )}
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Numéro d'enregistrement</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).numeroEnregistrement || <span className="text-gray-400 italic">Numéro d'enregistrement</span>}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Partenaires</label>
+                          <p className="text-gray-900 text-xs">{(selectedPublication as any).partenaires || <span className="text-gray-400 italic">Partenaires</span>}</p>
+                        </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
                           <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Lien <span className="text-red-600">*</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.lien ? (
                               <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                             ) : (
-                              <span className="text-gray-400 italic">https://...</span>
+                              <span className="text-gray-400 italic">https://ieeexplore.ieee.org/document/1234567</span>
                             )}
                           </p>
                           <div className="text-[11px] text-gray-600 mt-1">
                             Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                         <div className="bg-gray-50 rounded-lg p-2 border border-gray-100 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span></label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Justificatifs <span className="text-red-600">*</span> <span className='text-[10px] text-gray-500'>(Scan du justificatif au format PDF)</span></label>
                           <p className="text-gray-900 text-xs">
                             {selectedPublication.justificatifUrl ? (
                               <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                             ) : (
-                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez — PDF, DOC, DOCX jusqu'à 10MB</span>
+                              <span className="text-gray-400 italic">Cliquez pour télécharger ou glissez-déposez</span>
                             )}
                           </p>
+                          <div className="text-[10px] text-gray-500 mt-1">
+                            PDF, DOC, DOCX jusqu'à 10MB
+                          </div>
                         </div>
                       </>
                     )}
@@ -1370,7 +1381,7 @@ export default function PublicationsPage() {
                         <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">Journal</label>
                         <p className="text-gray-900 text-xs">
                           {selectedPublication.journal || (
-                            <span className="text-gray-400 italic">Non spécifié</span>
+                            <span className="text-gray-400 italic">IEEE Transactions on Pattern Analysis</span>
                           )}
                         </p>
                       </div>
@@ -1388,13 +1399,7 @@ export default function PublicationsPage() {
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                       <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 block">Tranche</label>
                       <div className="text-gray-900">
-                        {selectedPublication.tranche ? (
-                          <Badge variant="outline" className="text-sm bg-yellow-50 border-yellow-200 text-yellow-800 font-medium">
-                            {selectedPublication.tranche}
-                          </Badge>
-                        ) : (
-                          <span className="text-gray-400 italic text-sm">Non définie</span>
-                        )}
+                        <span className="text-gray-400 italic text-sm">Non classée</span>
                       </div>
                     </div>
                     )}
@@ -1411,7 +1416,7 @@ export default function PublicationsPage() {
                                 {selectedPublication.lien ? (
                                   <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                                 ) : (
-                                  <span className="text-gray-400 italic">https://...</span>
+                                  <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                                 )}
                               </span>
                             </div>
@@ -1421,7 +1426,7 @@ export default function PublicationsPage() {
                                 {selectedPublication.justificatifUrl ? (
                                   <a href={selectedPublication.justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Voir le justificatif (PDF)</a>
                                 ) : (
-                                  <span className="text-gray-400 italic">Non fourni</span>
+                                  <span className="text-gray-400 italic">Acceptance_Letter_2024.pdf</span>
                                 )}
                               </span>
                             </div>
@@ -1436,11 +1441,11 @@ export default function PublicationsPage() {
                           <>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">Maison d'édition</span>
-                              <span>{selectedPublication.maisonEdition || <span className="text-gray-400 italic">Non spécifié</span>}</span>
+                              <span>{selectedPublication.maisonEdition || <span className="text-gray-400 italic">Springer Nature</span>}</span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">ISBN</span>
-                              <span>{selectedPublication.isbn || <span className="text-gray-400 italic">Non spécifié</span>}</span>
+                              <span>{selectedPublication.isbn || <span className="text-gray-400 italic">978-3-030-12345-6</span>}</span>
                             </div>
                           </>
                         )}
@@ -1453,15 +1458,15 @@ export default function PublicationsPage() {
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">DOI</span>
-                              <span className="font-mono">{selectedPublication.doi || <span className="text-gray-400 italic">10.1234/abcd.2024.001</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">10.1234/abcd.2024.001</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">ORCID</span>
-                              <span className="font-mono">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">0000-0000-0000-0000</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">Source <span className="text-red-600">*</span></span>
-                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</span>
+                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Scopus</span>}</span>
                             </div>
                             {selectedPublication.abstract && (
                               <div className="md:col-span-2">
@@ -1475,7 +1480,7 @@ export default function PublicationsPage() {
                                 {selectedPublication.lien ? (
                                   <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                                 ) : (
-                                  <span className="text-gray-400 italic">https://...</span>
+                                  <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                                 )}
                               </span>
                               <div className="text-[11px] text-gray-600 mt-1">
@@ -1507,15 +1512,15 @@ export default function PublicationsPage() {
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">DOI</span>
-                              <span className="font-mono">{selectedPublication.doi || <span className="text-gray-400 italic">10.1234/abcd.2024.001</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">10.1234/abcd.2024.001</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">ORCID</span>
-                              <span className="font-mono">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">0000-0000-0000-0000</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">Source <span className="text-red-600">*</span></span>
-                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</span>
+                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Scopus</span>}</span>
                             </div>
                             {selectedPublication.abstract && (
                               <div className="md:col-span-2">
@@ -1529,7 +1534,7 @@ export default function PublicationsPage() {
                                 {selectedPublication.lien ? (
                                   <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                                 ) : (
-                                  <span className="text-gray-400 italic">https://...</span>
+                                  <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                                 )}
                               </span>
                               <div className="text-[11px] text-gray-600 mt-1">
@@ -1557,15 +1562,15 @@ export default function PublicationsPage() {
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">DOI</span>
-                              <span className="font-mono">{selectedPublication.doi || <span className="text-gray-400 italic">10.1234/abcd.2024.001</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">10.1234/abcd.2024.001</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">ORCID</span>
-                              <span className="font-mono">{(selectedPublication as any).orcid || <span className="text-gray-400 italic">0000-0000-0000-0000</span>}</span>
+                              <span className="font-mono"><span className="text-gray-400 italic">0000-0000-0000-0000</span></span>
                             </div>
                             <div>
                               <span className="font-semibold text-gray-600 block mb-1">Source <span className="text-red-600">*</span></span>
-                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Sélectionnez une source</span>}</span>
+                              <span>{selectedPublication.source || <span className="text-gray-400 italic">Scopus</span>}</span>
                             </div>
                             {selectedPublication.abstract && (
                               <div className="md:col-span-2">
@@ -1579,7 +1584,7 @@ export default function PublicationsPage() {
                                 {selectedPublication.lien ? (
                                   <a href={selectedPublication.lien} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{selectedPublication.lien}</a>
                                 ) : (
-                                  <span className="text-gray-400 italic">https://...</span>
+                                  <span className="text-gray-400 italic">https://www.jmir.org/2024/12/e51234/</span>
                                 )}
                               </span>
                               <div className="text-[11px] text-gray-600 mt-1">
@@ -1740,6 +1745,17 @@ export default function PublicationsPage() {
                   <div className="flex flex-col items-start">
                     <span className="font-medium text-gray-900">Brevets et droits</span>
                     <span className="text-sm text-gray-500">Brevets, propriété intellectuelle</span>
+                  </div>
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="h-16 text-left justify-start p-4 hover:bg-blue-50 hover:border-blue-300"
+                  onClick={() => setSelectedCategory("Chapitre")}
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-gray-900">Chapitre</span>
+                    <span className="text-sm text-gray-500">Chapitres d'ouvrages, contributions</span>
                   </div>
                 </Button>
                 
@@ -2010,14 +2026,6 @@ export default function PublicationsPage() {
                         </Select>
                         {indexeeErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
                       </div>
-                      <div className="mb-4">
-                        <Label htmlFor="doi-indexee">DOI</Label>
-                        <Input id="doi-indexee" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                      </div>
-                      <div className="mb-4">
-                        <Label htmlFor="orcid-indexee">ORCID</Label>
-                        <Input id="orcid-indexee" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
-                      </div>
                     </>
                   )}
                   <div className="mb-4">
@@ -2039,30 +2047,6 @@ export default function PublicationsPage() {
                     {indexeeErrors.annee && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
                   </div>
                   <div className="mb-4">
-                    <Label htmlFor="tranche-indexee">
-                      Tranche <span className="text-red-600">*</span>
-                    </Label>
-                    <Select
-                      value={indexeeValues.tranche}
-                      onValueChange={(value) => {
-                        setIndexeeValues(v => ({ ...v, tranche: value }))
-                        if (value) setIndexeeErrors(err => ({ ...err, tranche: false }))
-                      }}
-                    >
-                      <SelectTrigger className={`h-11 rounded-lg text-base ${indexeeErrors.tranche ? 'border-red-500' : ''}`}>
-                        <SelectValue placeholder="Choisir une tranche" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tranche A">Tranche A</SelectItem>
-                        <SelectItem value="Tranche B">Tranche B</SelectItem>
-                        <SelectItem value="Tranche C">Tranche C</SelectItem>
-                        <SelectItem value="Tranche D">Tranche D</SelectItem>
-                        <SelectItem value="Non classée">Non classée</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {indexeeErrors.tranche && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
-                  </div>
-                  <div className="mb-4">
                     <Label htmlFor="lien-revue">
                       Lien vers la revue
                       <span className={`ml-1 ${!manualFormData.lien && !manualFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
@@ -2071,7 +2055,7 @@ export default function PublicationsPage() {
                     </Label>
                     <Input 
                       id="lien-revue" 
-                      placeholder="https://..." 
+                      placeholder="https://ieeexplore.ieee.org/document/1234567" 
                       className="h-11 rounded-lg text-base"
                       value={manualFormData.lien}
                       onChange={(e) => {
@@ -2167,13 +2151,12 @@ export default function PublicationsPage() {
                         e.preventDefault()
                         
                         // Validation de tous les champs obligatoires
-                        let errors = { titre: false, journal: false, issn: false, base: false, annee: false, tranche: false }
+                        let errors = { titre: false, journal: false, issn: false, base: false, annee: false }
                         if (!indexeeValues.titre) errors.titre = true
                         if (!indexeeValues.journal) errors.journal = true
                         if (!indexeeValues.issn) errors.issn = true
                         if (!indexeeValues.base) errors.base = true
                         if (!indexeeValues.annee) errors.annee = true
-                        if (!indexeeValues.tranche) errors.tranche = true
                         setIndexeeErrors(errors)
                         
                         // Validation d'année
@@ -2206,8 +2189,8 @@ export default function PublicationsPage() {
                         setManualFormData({ lien: "", justificatif: null })
                         setLienJustificatifError("")
                         setYearError("")
-                        setIndexeeErrors({ titre: false, journal: false, issn: false, base: false, annee: false, tranche: false })
-                        setIndexeeValues({ titre: '', journal: '', issn: '', base: '', annee: '', tranche: '' })
+                        setIndexeeErrors({ titre: false, journal: false, issn: false, base: false, annee: false })
+                        setIndexeeValues({ titre: '', journal: '', issn: '', base: '', annee: '' })
                       }}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -2344,7 +2327,7 @@ export default function PublicationsPage() {
                     </Label>
                     <Input 
                       id="lien-manif-comm" 
-                      placeholder="https://..." 
+                      placeholder="https://icml.cc/2024/program" 
                       className="h-11 rounded-lg text-base"
                       value={commFormData.lien}
                       onChange={(e) => {
@@ -2376,14 +2359,6 @@ export default function PublicationsPage() {
                       </SelectContent>
                     </Select>
                     {commErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="doi-comm">DOI</Label>
-                    <Input id="doi-comm" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-comm">ORCID</Label>
-                    <Input id="orcid-comm" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
                   </div>
                   <div className="mb-4">
                     <Label htmlFor="justif-comm" className={commErrors.justificatif ? 'text-red-600' : ''}>
@@ -2661,7 +2636,7 @@ export default function PublicationsPage() {
                     </Label>
                     <Input 
                       id="lien-manif-comm-inter" 
-                      placeholder="https://..." 
+                      placeholder="https://neurips.cc/2024/program" 
                       className="h-11 rounded-lg text-base"
                       value={commFormData.lien}
                       onChange={(e) => {
@@ -2699,14 +2674,6 @@ export default function PublicationsPage() {
                       </SelectContent>
                     </Select>
                     {commErrors.base && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="doi-comm-inter">DOI</Label>
-                    <Input id="doi-comm-inter" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-comm-inter">ORCID</Label>
-                    <Input id="orcid-comm-inter" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
                   </div>
                   <div className="mb-4">
                     <Label htmlFor="justif-comm-inter">
@@ -2862,14 +2829,6 @@ export default function PublicationsPage() {
                     <Input id="isbn-ouvrage" placeholder="ISBN" className="h-11 rounded-lg text-base" />
                   </div>
                   <div className="mb-4">
-                    <Label htmlFor="doi-ouvrage">DOI</Label>
-                    <Input id="doi-ouvrage" placeholder="10.1234/abcd.2024.001" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
-                    <Label htmlFor="orcid-ouvrage">ORCID</Label>
-                    <Input id="orcid-ouvrage" placeholder="0000-0000-0000-0000" className="h-11 rounded-lg text-base" />
-                  </div>
-                  <div className="mb-4">
                     <Label htmlFor="lien-ouvrage">
                       Lien
                       <span className={`ml-1 ${!ouvrageFormData.lien && !ouvrageFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
@@ -2878,7 +2837,7 @@ export default function PublicationsPage() {
                     </Label>
                     <Input 
                       id="lien-ouvrage" 
-                      placeholder="https://..." 
+                      placeholder="https://link.springer.com/book/10.1007/978-3-030-12345-6" 
                       className="h-11 rounded-lg text-base"
                       value={ouvrageFormData.lien}
                       onChange={(e) => {
@@ -3019,6 +2978,995 @@ export default function PublicationsPage() {
                     </Button>
                   </div>
                 </form>
+              ) : selectedCategory === "Brevets et droits" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-brevet" className={brevetErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-brevet" 
+                      required 
+                      placeholder="Intitulé du brevet" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.intitule ? 'border-red-500' : ''}`}
+                      value={brevetValues.intitule}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {brevetErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="type-brevet" className={brevetErrors.type ? 'text-red-600' : ''}>
+                      Type <span className="text-red-600">*</span>
+                    </Label>
+                    <Select
+                      value={brevetValues.type}
+                      onValueChange={(value) => {
+                        setBrevetValues(v => ({ ...v, type: value }))
+                        if (value) setBrevetErrors(err => ({ ...err, type: false }))
+                      }}
+                    >
+                      <SelectTrigger className={`h-11 rounded-lg text-base ${brevetErrors.type ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Choisir un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Brevet d'invention">Brevet d'invention</SelectItem>
+                        <SelectItem value="Modèle d'utilité">Modèle d'utilité</SelectItem>
+                        <SelectItem value="Certificat d'utilité">Certificat d'utilité</SelectItem>
+                        <SelectItem value="Dessin et modèle">Dessin et modèle</SelectItem>
+                        <SelectItem value="Marque">Marque</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {brevetErrors.type && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="champ-application-brevet" className={brevetErrors.champApplication ? 'text-red-600' : ''}>
+                      Champ d'application <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="champ-application-brevet" 
+                      required 
+                      placeholder="Champ d'application" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.champApplication ? 'border-red-500' : ''}`}
+                      value={brevetValues.champApplication}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, champApplication: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, champApplication: false }))
+                      }}
+                    />
+                    {brevetErrors.champApplication && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-depot-brevet" className={brevetErrors.numeroDepot ? 'text-red-600' : ''}>
+                      Numéro de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="numero-depot-brevet" 
+                      required 
+                      placeholder="Numéro de dépôt" 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.numeroDepot ? 'border-red-500' : ''}`}
+                      value={brevetValues.numeroDepot}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, numeroDepot: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, numeroDepot: false }))
+                      }}
+                    />
+                    {brevetErrors.numeroDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-depot-brevet" className={brevetErrors.dateDepot ? 'text-red-600' : ''}>
+                      Date de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="date-depot-brevet" 
+                      type="date"
+                      required 
+                      className={`h-11 rounded-lg text-base ${brevetErrors.dateDepot ? 'border-red-500' : ''}`}
+                      value={brevetValues.dateDepot}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, dateDepot: e.target.value }))
+                        if (e.target.value) setBrevetErrors(err => ({ ...err, dateDepot: false }))
+                      }}
+                    />
+                    {brevetErrors.dateDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-enregistrement-brevet">Numéro d'enregistrement</Label>
+                    <Input 
+                      id="numero-enregistrement-brevet" 
+                      placeholder="Numéro d'enregistrement" 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetValues.numeroEnregistrement}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, numeroEnregistrement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="partenaires-brevet">Partenaires</Label>
+                    <Input 
+                      id="partenaires-brevet" 
+                      placeholder="Partenaires" 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetValues.partenaires}
+                      onChange={(e) => {
+                        setBrevetValues(v => ({ ...v, partenaires: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-brevet">
+                      Lien
+                      <span className={`ml-1 ${!brevetFormData.lien && !brevetFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!brevetFormData.lien && !brevetFormData.justificatif ? '*' : (!brevetFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-brevet" 
+                      placeholder="https://patents.google.com/patent/US12345678B2" 
+                      className="h-11 rounded-lg text-base"
+                      value={brevetFormData.lien}
+                      onChange={(e) => {
+                        setBrevetFormData({ ...brevetFormData, lien: e.target.value })
+                        if (e.target.value || brevetFormData.justificatif) {
+                          setBrevetLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-brevet">
+                      Justificatifs 
+                      <span className={`ml-1 ${!brevetFormData.lien && !brevetFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!brevetFormData.lien && !brevetFormData.justificatif ? '*' : (!brevetFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!brevetFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setBrevetFormData({ ...brevetFormData, justificatif: file })
+                            if (file || brevetFormData.lien) {
+                              setBrevetLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-brevet"
+                        />
+                        <label htmlFor="justif-brevet" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {brevetFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setBrevetFormData({ ...brevetFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {brevetLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{brevetLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false }
+                        if (!brevetValues.intitule) errors.intitule = true
+                        if (!brevetValues.type) errors.type = true
+                        if (!brevetValues.champApplication) errors.champApplication = true
+                        if (!brevetValues.numeroDepot) errors.numeroDepot = true
+                        if (!brevetValues.dateDepot) errors.dateDepot = true
+                        setBrevetErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!brevetFormData.lien && !brevetFormData.justificatif) {
+                          setBrevetLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Brevet ajouté manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          brevetFormData,
+                          brevetValues
+                        })
+                        toast({ title: "Succès", description: "Le brevet a été ajouté avec succès." })
+                        
+                        // Reset form
+                        setBrevetFormData({ lien: "", justificatif: null })
+                        setBrevetLienJustificatifError("")
+                        setBrevetErrors({ intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false })
+                        setBrevetValues({ intitule: '', type: '', champApplication: '', numeroDepot: '', dateDepot: '', numeroEnregistrement: '', partenaires: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Revue bibliographique" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-revue" className={revueErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-revue" 
+                      required 
+                      placeholder="Intitulé du brevet" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.intitule ? 'border-red-500' : ''}`}
+                      value={revueValues.intitule}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {revueErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="type-revue" className={revueErrors.type ? 'text-red-600' : ''}>
+                      Type <span className="text-red-600">*</span>
+                    </Label>
+                    <Select
+                      value={revueValues.type}
+                      onValueChange={(value) => {
+                        setRevueValues(v => ({ ...v, type: value }))
+                        if (value) setRevueErrors(err => ({ ...err, type: false }))
+                      }}
+                    >
+                      <SelectTrigger className={`h-11 rounded-lg text-base ${revueErrors.type ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Choisir un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Brevet d'invention">Brevet d'invention</SelectItem>
+                        <SelectItem value="Modèle d'utilité">Modèle d'utilité</SelectItem>
+                        <SelectItem value="Certificat d'utilité">Certificat d'utilité</SelectItem>
+                        <SelectItem value="Dessin et modèle">Dessin et modèle</SelectItem>
+                        <SelectItem value="Marque">Marque</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {revueErrors.type && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="champ-application-revue" className={revueErrors.champApplication ? 'text-red-600' : ''}>
+                      Champ d'application <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="champ-application-revue" 
+                      required 
+                      placeholder="Champ d'application" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.champApplication ? 'border-red-500' : ''}`}
+                      value={revueValues.champApplication}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, champApplication: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, champApplication: false }))
+                      }}
+                    />
+                    {revueErrors.champApplication && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-depot-revue" className={revueErrors.numeroDepot ? 'text-red-600' : ''}>
+                      Numéro de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="numero-depot-revue" 
+                      required 
+                      placeholder="Numéro de dépôt" 
+                      className={`h-11 rounded-lg text-base ${revueErrors.numeroDepot ? 'border-red-500' : ''}`}
+                      value={revueValues.numeroDepot}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, numeroDepot: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, numeroDepot: false }))
+                      }}
+                    />
+                    {revueErrors.numeroDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-depot-revue" className={revueErrors.dateDepot ? 'text-red-600' : ''}>
+                      Date de dépôt <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="date-depot-revue" 
+                      type="date"
+                      required 
+                      className={`h-11 rounded-lg text-base ${revueErrors.dateDepot ? 'border-red-500' : ''}`}
+                      value={revueValues.dateDepot}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, dateDepot: e.target.value }))
+                        if (e.target.value) setRevueErrors(err => ({ ...err, dateDepot: false }))
+                      }}
+                    />
+                    {revueErrors.dateDepot && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-enregistrement-revue">Numéro d'enregistrement</Label>
+                    <Input 
+                      id="numero-enregistrement-revue" 
+                      placeholder="Numéro d'enregistrement" 
+                      className="h-11 rounded-lg text-base"
+                      value={revueValues.numeroEnregistrement}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, numeroEnregistrement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="partenaires-revue">Partenaires</Label>
+                    <Input 
+                      id="partenaires-revue" 
+                      placeholder="Partenaires" 
+                      className="h-11 rounded-lg text-base"
+                      value={revueValues.partenaires}
+                      onChange={(e) => {
+                        setRevueValues(v => ({ ...v, partenaires: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-revue">
+                      Lien
+                      <span className={`ml-1 ${!revueFormData.lien && !revueFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!revueFormData.lien && !revueFormData.justificatif ? '*' : (!revueFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-revue" 
+                      placeholder="https://ieeexplore.ieee.org/document/1234567" 
+                      className="h-11 rounded-lg text-base"
+                      value={revueFormData.lien}
+                      onChange={(e) => {
+                        setRevueFormData({ ...revueFormData, lien: e.target.value })
+                        if (e.target.value || revueFormData.justificatif) {
+                          setRevueLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-revue">
+                      Justificatifs 
+                      <span className={`ml-1 ${!revueFormData.lien && !revueFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!revueFormData.lien && !revueFormData.justificatif ? '*' : (!revueFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!revueFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setRevueFormData({ ...revueFormData, justificatif: file })
+                            if (file || revueFormData.lien) {
+                              setRevueLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-revue"
+                        />
+                        <label htmlFor="justif-revue" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {revueFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setRevueFormData({ ...revueFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {revueLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{revueLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false }
+                        if (!revueValues.intitule) errors.intitule = true
+                        if (!revueValues.type) errors.type = true
+                        if (!revueValues.champApplication) errors.champApplication = true
+                        if (!revueValues.numeroDepot) errors.numeroDepot = true
+                        if (!revueValues.dateDepot) errors.dateDepot = true
+                        setRevueErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!revueFormData.lien && !revueFormData.justificatif) {
+                          setRevueLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Revue bibliographique ajoutée manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          revueFormData,
+                          revueValues
+                        })
+                        toast({ title: "Succès", description: "La revue bibliographique a été ajoutée avec succès." })
+                        
+                        // Reset form
+                        setRevueFormData({ lien: "", justificatif: null })
+                        setRevueLienJustificatifError("")
+                        setRevueErrors({ intitule: false, type: false, champApplication: false, numeroDepot: false, dateDepot: false })
+                        setRevueValues({ intitule: '', type: '', champApplication: '', numeroDepot: '', dateDepot: '', numeroEnregistrement: '', partenaires: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Distinctions et Prix" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-distinction" className={distinctionErrors.intitule ? 'text-red-600' : ''}>
+                      Intitulé <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-distinction" 
+                      required 
+                      placeholder="Intitulé de la distinction/prix" 
+                      className={`h-11 rounded-lg text-base ${distinctionErrors.intitule ? 'border-red-500' : ''}`}
+                      value={distinctionValues.intitule}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, intitule: e.target.value }))
+                        if (e.target.value) setDistinctionErrors(err => ({ ...err, intitule: false }))
+                      }}
+                    />
+                    {distinctionErrors.intitule && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="evenement-distinction">Évènement</Label>
+                    <Input 
+                      id="evenement-distinction" 
+                      placeholder="Nom de l'évènement" 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionValues.evenement}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, evenement: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="organisme-distinction">Organisme</Label>
+                    <Input 
+                      id="organisme-distinction" 
+                      placeholder="Nom de l'organisme" 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionValues.organisme}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, organisme: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="date-distinction" className={distinctionErrors.date ? 'text-red-600' : ''}>
+                      Date <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="date-distinction"
+                      type="date"
+                      required
+                      className={`h-11 rounded-lg text-base ${distinctionErrors.date ? 'border-red-500' : ''}`}
+                      value={distinctionValues.date}
+                      onChange={(e) => {
+                        setDistinctionValues(v => ({ ...v, date: e.target.value }))
+                        if (e.target.value) setDistinctionErrors(err => ({ ...err, date: false }))
+                      }}
+                    />
+                    {distinctionErrors.date && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-distinction">
+                      Lien
+                      <span className={`ml-1 ${!distinctionFormData.lien && !distinctionFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!distinctionFormData.lien && !distinctionFormData.justificatif ? '*' : (!distinctionFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-distinction" 
+                      placeholder="https://awards.acm.org/award-winners" 
+                      className="h-11 rounded-lg text-base"
+                      value={distinctionFormData.lien}
+                      onChange={(e) => {
+                        setDistinctionFormData({ ...distinctionFormData, lien: e.target.value })
+                        if (e.target.value || distinctionFormData.justificatif) {
+                          setDistinctionLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-distinction">
+                      Justificatifs 
+                      <span className={`ml-1 ${!distinctionFormData.lien && !distinctionFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!distinctionFormData.lien && !distinctionFormData.justificatif ? '*' : (!distinctionFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!distinctionFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setDistinctionFormData({ ...distinctionFormData, justificatif: file })
+                            if (file || distinctionFormData.lien) {
+                              setDistinctionLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-distinction"
+                        />
+                        <label htmlFor="justif-distinction" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {distinctionFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDistinctionFormData({ ...distinctionFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {distinctionLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{distinctionLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intitule: false, date: false }
+                        if (!distinctionValues.intitule) errors.intitule = true
+                        if (!distinctionValues.date) errors.date = true
+                        setDistinctionErrors(errors)
+                        
+                        // Validation lien OU justificatif
+                        if (!distinctionFormData.lien && !distinctionFormData.justificatif) {
+                          setDistinctionLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Distinction ajoutée manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          distinctionFormData,
+                          distinctionValues
+                        })
+                        toast({ title: "Succès", description: "La distinction a été ajoutée avec succès." })
+                        
+                        // Reset form
+                        setDistinctionFormData({ lien: "", justificatif: null })
+                        setDistinctionLienJustificatifError("")
+                        setDistinctionErrors({ intitule: false, date: false })
+                        setDistinctionValues({ intitule: '', evenement: '', organisme: '', date: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
+              ) : selectedCategory === "Chapitre" ? (
+                <form className="space-y-8 rounded-lg shadow-md bg-white border p-6">
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-chapitre" className={chapitreErrors.intituleChapitre ? 'text-red-600' : ''}>
+                      Intitulé du chapitre <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-chapitre" 
+                      required 
+                      placeholder="Intitulé du chapitre" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.intituleChapitre ? 'border-red-500' : ''}`}
+                      value={chapitreValues.intituleChapitre}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, intituleChapitre: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, intituleChapitre: false }))
+                      }}
+                    />
+                    {chapitreErrors.intituleChapitre && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="numero-chapitre">Numéro du chapitre</Label>
+                    <Input 
+                      id="numero-chapitre" 
+                      placeholder="Numéro du chapitre" 
+                      className="h-11 rounded-lg text-base"
+                      value={chapitreValues.numeroChapitre}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, numeroChapitre: e.target.value }))
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <Label htmlFor="page-de">Page de</Label>
+                      <Input 
+                        id="page-de" 
+                        placeholder="Page de" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.pageDe}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, pageDe: e.target.value }))
+                        }}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="page-a">Page à</Label>
+                      <Input 
+                        id="page-a" 
+                        placeholder="Page à" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.pageA}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, pageA: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="intitule-ouvrage" className={chapitreErrors.intituleOuvrage ? 'text-red-600' : ''}>
+                      Intitulé d'ouvrage <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="intitule-ouvrage" 
+                      required 
+                      placeholder="Intitulé d'ouvrage" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.intituleOuvrage ? 'border-red-500' : ''}`}
+                      value={chapitreValues.intituleOuvrage}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, intituleOuvrage: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, intituleOuvrage: false }))
+                      }}
+                    />
+                    {chapitreErrors.intituleOuvrage && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="maison-edition" className={chapitreErrors.maisonEdition ? 'text-red-600' : ''}>
+                      Maison d'édition <span className="text-red-600">*</span>
+                    </Label>
+                    <Input 
+                      id="maison-edition" 
+                      required 
+                      placeholder="Maison d'édition" 
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.maisonEdition ? 'border-red-500' : ''}`}
+                      value={chapitreValues.maisonEdition}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, maisonEdition: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, maisonEdition: false }))
+                      }}
+                    />
+                    {chapitreErrors.maisonEdition && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="annee-chapitre" className={chapitreErrors.annee ? 'text-red-600' : ''}>
+                      Année <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="annee-chapitre"
+                      type="number"
+                      required
+                      placeholder="2025"
+                      className={`h-11 rounded-lg text-base ${chapitreErrors.annee ? 'border-red-500' : ''}`}
+                      value={chapitreValues.annee}
+                      onChange={(e) => {
+                        setChapitreValues(v => ({ ...v, annee: e.target.value }))
+                        if (e.target.value) setChapitreErrors(err => ({ ...err, annee: false }))
+                      }}
+                    />
+                    {chapitreErrors.annee && <p className="text-xs text-red-600 mt-1">Ce champ est obligatoire</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
+                      <Label htmlFor="issn-chapitre">ISSN</Label>
+                      <Input 
+                        id="issn-chapitre" 
+                        placeholder="ISSN" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.issn}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, issn: e.target.value }))
+                        }}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <Label htmlFor="isbn-chapitre">ISBN</Label>
+                      <Input 
+                        id="isbn-chapitre" 
+                        placeholder="ISBN" 
+                        className="h-11 rounded-lg text-base"
+                        value={chapitreValues.isbn}
+                        onChange={(e) => {
+                          setChapitreValues(v => ({ ...v, isbn: e.target.value }))
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="lien-chapitre">
+                      Lien
+                      <span className={`ml-1 ${!chapitreFormData.lien && !chapitreFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!chapitreFormData.lien && !chapitreFormData.justificatif ? '*' : (!chapitreFormData.lien ? '(optionnel)' : '')}
+                      </span>
+                    </Label>
+                    <Input 
+                      id="lien-chapitre" 
+                      placeholder="https://link.springer.com/chapter/10.1007/978-3-030-12345-6_5" 
+                      className="h-11 rounded-lg text-base"
+                      value={chapitreFormData.lien}
+                      onChange={(e) => {
+                        setChapitreFormData({ ...chapitreFormData, lien: e.target.value })
+                        if (e.target.value || chapitreFormData.justificatif) {
+                          setChapitreLienJustificatifError("")
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fournissez un lien OU un justificatif (au moins l'un des deux est requis)
+                    </p>
+                  </div>
+                  <div className="mb-4">
+                    <Label htmlFor="justif-chapitre">
+                      Justificatifs 
+                      <span className={`ml-1 ${!chapitreFormData.lien && !chapitreFormData.justificatif ? 'text-red-600' : 'text-gray-500'}`}>
+                        {!chapitreFormData.lien && !chapitreFormData.justificatif ? '*' : (!chapitreFormData.justificatif ? '(optionnel)' : '')}
+                      </span>
+                      <span className='text-xs text-gray-500'> (Scan du justificatif au format PDF)</span>
+                    </Label>
+                    
+                    {!chapitreFormData.justificatif ? (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setChapitreFormData({ ...chapitreFormData, justificatif: file })
+                            if (file || chapitreFormData.lien) {
+                              setChapitreLienJustificatifError("")
+                            }
+                          }}
+                          className="hidden"
+                          id="justif-chapitre"
+                        />
+                        <label htmlFor="justif-chapitre" className="cursor-pointer">
+                          <div className="space-y-3">
+                            <div className="mx-auto w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                              <FileText className="h-8 w-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Cliquez pour télécharger ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PDF, DOC, DOCX jusqu'à 10MB
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="flex-1 text-sm text-gray-700 truncate">
+                          {chapitreFormData.justificatif.name}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setChapitreFormData({ ...chapitreFormData, justificatif: null })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    {chapitreLienJustificatifError && (
+                      <p className="text-xs text-red-600 mt-1">{chapitreLienJustificatifError}</p>
+                    )}
+                  </div>
+                  <div className="flex justify-end space-x-3 p-2 md:p-4">
+                    <Button variant="outline" onClick={() => {
+                      setAddManualDialogOpen(false)
+                      setSelectedCategory("")
+                      setSelectedSubCategory("")
+                    }}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-uh2c-blue hover:bg-uh2c-blue/90 text-white border-uh2c-blue"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        
+                        // Validation de tous les champs obligatoires
+                        let errors = { intituleChapitre: false, intituleOuvrage: false, maisonEdition: false, annee: false }
+                        if (!chapitreValues.intituleChapitre) errors.intituleChapitre = true
+                        if (!chapitreValues.intituleOuvrage) errors.intituleOuvrage = true
+                        if (!chapitreValues.maisonEdition) errors.maisonEdition = true
+                        if (!chapitreValues.annee) errors.annee = true
+                        setChapitreErrors(errors)
+                        
+                        // Validation d'année
+                        const yearInput = document.getElementById('annee-chapitre') as HTMLInputElement
+                        if (yearInput && parseInt(yearInput.value) > getCurrentYear()) {
+                          setYearError("L'année ne peut pas être supérieure à l'année actuelle")
+                          return
+                        }
+                        
+                        // Validation lien OU justificatif
+                        if (!chapitreFormData.lien && !chapitreFormData.justificatif) {
+                          setChapitreLienJustificatifError("Veuillez fournir soit un lien, soit un justificatif.")
+                          return
+                        }
+                        
+                        // Si il y a des erreurs, ne pas continuer
+                        if (Object.values(errors).some(Boolean)) {
+                          return
+                        }
+                        
+                        console.log("Chapitre ajouté manuellement", { 
+                          category: selectedCategory,
+                          subCategory: selectedSubCategory,
+                          chapitreFormData,
+                          chapitreValues
+                        })
+                        toast({ title: "Succès", description: "Le chapitre a été ajouté avec succès." })
+                        
+                        // Reset form
+                        setChapitreFormData({ lien: "", justificatif: null })
+                        setChapitreLienJustificatifError("")
+                        setYearError("")
+                        setChapitreErrors({ intituleChapitre: false, intituleOuvrage: false, maisonEdition: false, annee: false })
+                        setChapitreValues({ intituleChapitre: '', numeroChapitre: '', pageDe: '', pageA: '', intituleOuvrage: '', maisonEdition: '', annee: '', issn: '', isbn: '' })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter la publication
+                    </Button>
+                  </div>
+                </form>
               ) : (
                 // Formulaire classique pour les autres cas
                 <>
@@ -3102,28 +4050,6 @@ export default function PublicationsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="mb-4">
-                      <Label htmlFor="doi">DOI</Label>
-                      <Input 
-                        id="doi" 
-                        value={formData.doi}
-                        onChange={(e) => setFormData({ ...formData, doi: e.target.value })}
-                        placeholder="10.1234/abcd.2024.001" 
-                        className="h-11 rounded-lg text-base" 
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <Label htmlFor="orcid">ORCID</Label>
-                      <Input 
-                        id="orcid" 
-                        value={formData.orcid}
-                        onChange={(e) => setFormData({ ...formData, orcid: e.target.value })}
-                        placeholder="0000-0000-0000-0000" 
-                        className="h-11 rounded-lg text-base" 
-                      />
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="mb-4">
@@ -3179,7 +4105,7 @@ export default function PublicationsPage() {
                         setFormData({ ...formData, lien: e.target.value })
                         setLienJustificatifError("")
                       }}
-                      placeholder="https://..." 
+                      placeholder="https://ieeexplore.ieee.org/document/1234567" 
                       className="h-11 rounded-lg text-base" 
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -3276,12 +4202,11 @@ export default function PublicationsPage() {
                         e.preventDefault()
                         
                         // Validation de tous les champs obligatoires
-                        let errors = { title: false, authors: false, year: false, source: false, tranche: false }
+                        let errors = { title: false, authors: false, year: false, source: false }
                         if (!formData.title) errors.title = true
                         if (!formData.authors) errors.authors = true
                         if (!formData.year) errors.year = true
                         if (!formData.source) errors.source = true
-                        if (!formData.tranche) errors.tranche = true
                         setGenericErrors(errors)
                         
                         // Validation d'année
@@ -3314,17 +4239,14 @@ export default function PublicationsPage() {
                           authors: "",
                           year: new Date().getFullYear(),
                           journal: "",
-                          doi: "",
-                          orcid: "",
                           source: "",
                           abstract: "",
                           lien: "",
                           justificatifs: [],
-                          tranche: ""
                         })
                         setLienJustificatifError("")
                         setYearError("")
-                        setGenericErrors({ title: false, authors: false, year: false, source: false, tranche: false })
+                        setGenericErrors({ title: false, authors: false, year: false, source: false })
                       }}
                     >
                       <Plus className="h-4 w-4 mr-2" />
